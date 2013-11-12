@@ -165,6 +165,7 @@ HTMLInspector.rules.add( require("./rules/best-practices/inline-event-handlers.j
 HTMLInspector.rules.add( require("./rules/best-practices/script-placement.js") )
 HTMLInspector.rules.add( require("./rules/best-practices/unnecessary-elements.js") )
 HTMLInspector.rules.add( require("./rules/best-practices/unused-classes.js") )
+HTMLInspector.rules.add( require("./rules/best-practices/large-viewstate.js") )
 HTMLInspector.rules.add( require("./rules/convention/bem-conventions.js") )
 HTMLInspector.rules.add( require("./rules/validation/duplicate-ids.js") )
 HTMLInspector.rules.add( require("./rules/validation/unique-elements.js") )
