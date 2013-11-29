@@ -4,7 +4,7 @@
  * Copyright (c) 2013 Philip Walton <http://philipwalton.com>
  * Released under the MIT license
  *
- * Date: 2013-10-15
+ * Date: 2013-11-29
  */
 
 !function(e){"object"==typeof exports?module.exports=e():"function"==typeof define&&define.amd?define(e):"undefined"!=typeof window?window.HTMLInspector=e():"undefined"!=typeof global?global.HTMLInspector=e():"undefined"!=typeof self&&(self.HTMLInspector=e())}(function(){var define,module,exports;
@@ -695,6 +695,7 @@ HTMLInspector.rules.add( require("./rules/best-practices/inline-event-handlers.j
 HTMLInspector.rules.add( require("./rules/best-practices/script-placement.js") )
 HTMLInspector.rules.add( require("./rules/best-practices/unnecessary-elements.js") )
 HTMLInspector.rules.add( require("./rules/best-practices/unused-classes.js") )
+HTMLInspector.rules.add( require("./rules/best-practices/large-viewstate.js") )
 HTMLInspector.rules.add( require("./rules/convention/bem-conventions.js") )
 HTMLInspector.rules.add( require("./rules/validation/duplicate-ids.js") )
 HTMLInspector.rules.add( require("./rules/validation/unique-elements.js") )
@@ -704,7 +705,7 @@ HTMLInspector.rules.add( require("./rules/validation/validate-elements.js") )
 
 module.exports = HTMLInspector
 
-},{"./listener":21,"./modules":22,"./modules/css.js":23,"./modules/validation.js":24,"./reporter":25,"./rules":26,"./rules/best-practices/inline-event-handlers.js":27,"./rules/best-practices/script-placement.js":28,"./rules/best-practices/unnecessary-elements.js":29,"./rules/best-practices/unused-classes.js":30,"./rules/convention/bem-conventions.js":31,"./rules/validation/duplicate-ids.js":32,"./rules/validation/unique-elements.js":33,"./rules/validation/validate-attributes.js":34,"./rules/validation/validate-element-location.js":35,"./rules/validation/validate-elements.js":36,"dom-utils/src/get-attributes":1,"dom-utils/src/matches":2,"mout/array/unique":6,"mout/lang/isRegExp":11,"mout/lang/toArray":13,"mout/object/mixIn":18}],21:[function(require,module,exports){
+},{"./listener":21,"./modules":22,"./modules/css.js":23,"./modules/validation.js":24,"./reporter":25,"./rules":26,"./rules/best-practices/inline-event-handlers.js":27,"./rules/best-practices/large-viewstate.js":28,"./rules/best-practices/script-placement.js":29,"./rules/best-practices/unnecessary-elements.js":30,"./rules/best-practices/unused-classes.js":31,"./rules/convention/bem-conventions.js":32,"./rules/validation/duplicate-ids.js":33,"./rules/validation/unique-elements.js":34,"./rules/validation/validate-attributes.js":35,"./rules/validation/validate-element-location.js":36,"./rules/validation/validate-elements.js":37,"dom-utils/src/get-attributes":1,"dom-utils/src/matches":2,"mout/array/unique":6,"mout/lang/isRegExp":11,"mout/lang/toArray":13,"mout/object/mixIn":18}],21:[function(require,module,exports){
 var Callbacks = require("./callbacks")
 
 function Listener() {
@@ -1677,7 +1678,7 @@ module.exports = {
   module: spec
 }
 
-},{"../utils/string-matcher":37}],25:[function(require,module,exports){
+},{"../utils/string-matcher":38}],25:[function(require,module,exports){
 function Reporter() {
   this._errors = []
 }
@@ -1750,6 +1751,45 @@ module.exports = {
 },{}],28:[function(require,module,exports){
 module.exports = {
 
+  name: "large-viewstate",
+
+  config: {
+    //Warn if more than 50 KB in total size 
+    sizeInKB: 50
+  },
+
+  func: function(listener, reporter, config) {
+
+    var viewStateCount = 0
+      , viewStateSize = 0
+
+    // register a handler for the `attribute` event
+    listener.on('attribute', function(name, value, element) {
+      //Total no. of characters in value attribute of all <input type="hidden" name="__VIEWSTATE"> tags should not be more than 50 (config value)
+      if (name=="name" && value.indexOf("__VIEWSTATE")===0 && value!== "__VIEWSTATEFIELDCOUNT") {
+        viewStateCount++
+        viewStateSize += element.getAttribute("value").length
+      }
+    })
+
+    listener.on("afterInspect", function() {
+      
+      if (viewStateSize > config.sizeInKB * 1024) {
+
+        reporter.warn(
+            "large-viewstate",
+            viewStateSize/1024 + " KB is being used in " + viewStateCount + " chunk(s) of View State.",
+            "Disable View States where not needed for better performace."
+        )
+      }  
+
+    })
+  }
+}
+
+},{}],29:[function(require,module,exports){
+module.exports = {
+
   name: "script-placement",
 
   config: {
@@ -1801,7 +1841,7 @@ module.exports = {
     })
   }
 }
-},{"dom-utils/src/matches":2}],29:[function(require,module,exports){
+},{"dom-utils/src/matches":2}],30:[function(require,module,exports){
 module.exports = {
 
   name: "unnecessary-elements",
@@ -1828,7 +1868,7 @@ module.exports = {
   }
 }
 
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 module.exports = {
 
   name: "unused-classes",
@@ -1861,7 +1901,7 @@ module.exports = {
   }
 }
 
-},{"../../utils/string-matcher":37}],31:[function(require,module,exports){
+},{"../../utils/string-matcher":38}],32:[function(require,module,exports){
 // ============================================================
 // There are several different BEM  naming conventions that
 // I'm aware of. To make things easier, I refer to the
@@ -1977,7 +2017,7 @@ module.exports = {
   }
 }
 
-},{"dom-utils/src/matches":2,"dom-utils/src/parents":3}],32:[function(require,module,exports){
+},{"dom-utils/src/matches":2,"dom-utils/src/parents":3}],33:[function(require,module,exports){
 module.exports = {
 
   name: "duplicate-ids",
@@ -2021,7 +2061,7 @@ module.exports = {
   }
 }
 
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 module.exports = {
 
   name: "unique-elements",
@@ -2061,7 +2101,7 @@ module.exports = {
   }
 }
 
-},{}],34:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 module.exports = {
 
   name: "validate-attributes",
@@ -2110,7 +2150,7 @@ module.exports = {
   }
 }
 
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 module.exports = {
 
   name: "validate-element-location",
@@ -2192,7 +2232,7 @@ module.exports = {
   }
 }
 
-},{"dom-utils/src/matches":2,"dom-utils/src/parents":3}],36:[function(require,module,exports){
+},{"dom-utils/src/matches":2,"dom-utils/src/parents":3}],37:[function(require,module,exports){
 module.exports = {
 
   name: "validate-elements",
@@ -2220,7 +2260,7 @@ module.exports = {
   }
 }
 
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 var isRegExp = require("mout/lang/isRegExp")
 
 /**
